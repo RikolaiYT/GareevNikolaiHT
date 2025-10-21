@@ -36,7 +36,7 @@ namespace MultithreadCalculator
             Calculator1.varFact1 = v;
             btnFactorial1.IsEnabled = false;
             // старт потока 1
-            Calculator1.ChooseTask(1);
+            Calculator1.ChooseThreads(1);
         }
 
         private void btnFactorial2_Click(object sender, RoutedEventArgs e)
@@ -44,7 +44,7 @@ namespace MultithreadCalculator
             if (!int.TryParse(txtValue.Text, out int v)) { MessageBox.Show("Введите целое число"); return; }
             Calculator1.varFact2 = v;
             btnFactorial2.IsEnabled = false;
-            Calculator1.ChooseTask(2);
+            Calculator1.ChooseThreads(2);
         }
 
         private void btnAddTwo_Click(object sender, RoutedEventArgs e)
@@ -52,7 +52,7 @@ namespace MultithreadCalculator
             if (!int.TryParse(txtValue.Text, out int v)) { MessageBox.Show("Введите целое число"); return; }
             Calculator1.varAddTwo = v;
             btnAddTwo.IsEnabled = false;
-            Calculator1.ChooseTask(3);
+            Calculator1.ChooseThreads(3);
         }
 
         private void btnRunLoops_Click(object sender, RoutedEventArgs e)
@@ -61,7 +61,7 @@ namespace MultithreadCalculator
             Calculator1.varLoopValue = v;
             btnRunLoops.IsEnabled = false;
             lblRunLoops.Content = "Looping";
-            Calculator1.ChooseTask(4);
+            Calculator1.ChooseThreads(4);
         }
 
         // Обработчики событий компонента — они вызываются из НЕ-UI потока,

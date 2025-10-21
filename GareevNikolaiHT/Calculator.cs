@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MultithreadCalculator
 {
@@ -24,10 +22,9 @@ namespace MultithreadCalculator
 
         public long LastOperationMilliseconds { get; private set; } = 0;
 
-        private readonly object _lock = new object();
         private readonly StopwatchTimer _stopwatch = new StopwatchTimer();
 
-        // --------------------- Форматтер ------------------------
+        // -------- Форматирование BigInteger как 1.23×10^N --------
         public static class BigIntFormatter
         {
             public static string FormatBigIntegerAsScientific(BigInteger value, int significantDigits = 3)
@@ -37,6 +34,7 @@ namespace MultithreadCalculator
 
                 string s = BigInteger.Abs(value).ToString();
                 int exponent = s.Length - 1;
+
                 string firstDigits = s.Substring(0, Math.Min(significantDigits, s.Length));
 
                 string formatted = firstDigits.Length > 1
@@ -51,42 +49,52 @@ namespace MultithreadCalculator
             }
         }
 
-        // ------------------- Методы вычислений -------------------
-        private void DoFactorial(int n, Action<string, double> callback)
+        // ---------- ОДНОПОТОЧНЫЕ вычисления ----------
+        public void Factorial()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
 
-            BigInteger varResult = BigInteger.One;
-            for (int i = 1; i <= n; i++)
+            BigInteger result = BigInteger.One;
+            for (int i = 1; i <= varFact1; i++)
             {
-                varResult *= i;
-                if (i % 1000 == 0)
-                    Thread.Yield();
-
-                lock (_lock)
-                {
-                    varTotalCalculations++;
-                }
+                result *= i;
+                varTotalCalculations++;
             }
-
-            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(varResult);
-            double total = varTotalCalculations;
 
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
 
-            callback?.Invoke(formatted, total);
+            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(result);
+            FactorialComplete?.Invoke(formatted, varTotalCalculations);
         }
 
-        private void DoAddTwo()
+        public void FactorialMinusOne()
+        {
+            _stopwatch.Reset();
+            _stopwatch.Start();
+
+            BigInteger result = BigInteger.One;
+            for (int i = 1; i <= varFact2 - 1; i++)
+            {
+                result *= i;
+                varTotalCalculations++;
+            }
+
+            _stopwatch.Stop();
+            LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
+
+            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(result);
+            FactorialMinusOneComplete?.Invoke(formatted, varTotalCalculations);
+        }
+
+        public void AddTwo()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
 
             int result = varAddTwo + 2;
-            lock (_lock)
-                varTotalCalculations++;
+            varTotalCalculations++;
 
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
@@ -94,7 +102,7 @@ namespace MultithreadCalculator
             AddTwoComplete?.Invoke(result, varTotalCalculations);
         }
 
-        private void DoLoop()
+        public void RunALoop()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
@@ -103,8 +111,7 @@ namespace MultithreadCalculator
             {
                 for (int y = 1; y <= 500; y++)
                 {
-                    lock (_lock)
-                        varTotalCalculations++;
+                    varTotalCalculations++;
                 }
             }
 
@@ -114,26 +121,24 @@ namespace MultithreadCalculator
             LoopComplete?.Invoke(varTotalCalculations, varLoopValue);
         }
 
-        // ------------------- Task-реализация -------------------
-        public void ChooseTask(int taskNumber)
+        // --- Вместо потоков: просто вызывает метод напрямую ---
+        public void ChooseThreads(int threadNumber)
         {
-            switch (taskNumber)
+            switch (threadNumber)
             {
                 case 1:
-                    // Оборачиваем событие в лямбду — событие нельзя напрямую передать как Action
-                    Task.Run(() => DoFactorial(varFact1, (s, d) => FactorialComplete?.Invoke(s, d)));
+                    Factorial();
                     break;
                 case 2:
-                    Task.Run(() => DoFactorial(varFact2 - 1, (s, d) => FactorialMinusOneComplete?.Invoke(s, d)));
+                    FactorialMinusOne();
                     break;
                 case 3:
-                    Task.Run(() => DoAddTwo());
+                    AddTwo();
                     break;
                 case 4:
-                    Task.Run(() => DoLoop());
+                    RunALoop();
                     break;
             }
         }
-
     }
 }
