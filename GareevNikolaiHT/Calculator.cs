@@ -32,12 +32,45 @@ namespace MultithreadCalculator
         private readonly object _lock = new object();
         private readonly StopwatchTimer _stopwatch = new StopwatchTimer();
 
+        public static class BigIntFormatter
+            {
+                public static string FormatBigIntegerAsScientific(BigInteger value, int significantDigits = 3)
+                {
+                    if (value == 0)
+                        return "0";
+
+                    string s = BigInteger.Abs(value).ToString();
+                    int exponent = s.Length - 1;
+
+                    // Берём первые значащие цифры
+                    string firstDigits = s.Substring(0, Math.Min(significantDigits, s.Length));
+
+                    // Если длина больше 1, вставим запятую после первой цифры
+                    string formatted = firstDigits.Length > 1
+                        ? $"{firstDigits[0]}.{firstDigits.Substring(1)}"
+                        : firstDigits;
+
+                    // Добавим экспоненту
+                    string result = $"{formatted} × 10^{exponent}";
+
+                    // Добавим минус, если число отрицательное
+                    if (value.Sign < 0)
+                        result = "−" + result;
+
+                    return result;
+                }
+        }
+
         public void FactorialMinusOne()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
 
             BigInteger varResult = BigInteger.One;
+            for (int i = 1; i <= varFact1; i++)
+                varResult *= i;
+
+            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(varResult);
             double varTotalAsOfNow = 0;
 
             for (int varX = 1; varX <= varFact2 - 1; varX++)
@@ -58,7 +91,7 @@ namespace MultithreadCalculator
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
 
-            FactorialMinusOneComplete?.Invoke(varResult.ToString(), varTotalAsOfNow);
+            FactorialMinusOneComplete?.Invoke(formatted, varTotalAsOfNow);
         }
 
         public void Factorial()
@@ -67,6 +100,10 @@ namespace MultithreadCalculator
             _stopwatch.Start();
 
             BigInteger varResult = BigInteger.One;
+            for (int i = 1; i <= varFact1; i++)
+                varResult *= i;
+
+            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(varResult);
             double varTotalAsOfNow = 0;
 
             for (int varX = 1; varX <= varFact1; varX++)
@@ -87,7 +124,7 @@ namespace MultithreadCalculator
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
 
-            FactorialComplete?.Invoke(varResult.ToString(), varTotalAsOfNow);
+            FactorialComplete?.Invoke(formatted, varTotalAsOfNow);
         }
 
         public void AddTwo()
