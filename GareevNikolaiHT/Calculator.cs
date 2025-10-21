@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Threading;
-
+using System.Threading.Tasks;
 
 namespace MultithreadCalculator
 {
@@ -12,11 +12,6 @@ namespace MultithreadCalculator
         public int varFact2;
         public int varLoopValue;
         public double varTotalCalculations = 0;
-
-        public Thread FactorialThread;
-        public Thread FactorialMinusOneThread;
-        public Thread AddTwoThread;
-        public Thread LoopThread;
 
         public delegate void FactorialCompleteHandler(string Result, double TotalCalculations);
         public delegate void AddTwoCompleteHandler(int Result, double TotalCalculations);
@@ -32,169 +27,113 @@ namespace MultithreadCalculator
         private readonly object _lock = new object();
         private readonly StopwatchTimer _stopwatch = new StopwatchTimer();
 
+        // --------------------- Форматтер ------------------------
         public static class BigIntFormatter
+        {
+            public static string FormatBigIntegerAsScientific(BigInteger value, int significantDigits = 3)
             {
-                public static string FormatBigIntegerAsScientific(BigInteger value, int significantDigits = 3)
-                {
-                    if (value == 0)
-                        return "0";
+                if (value == 0)
+                    return "0";
 
-                    string s = BigInteger.Abs(value).ToString();
-                    int exponent = s.Length - 1;
+                string s = BigInteger.Abs(value).ToString();
+                int exponent = s.Length - 1;
+                string firstDigits = s.Substring(0, Math.Min(significantDigits, s.Length));
 
-                    // Берём первые значащие цифры
-                    string firstDigits = s.Substring(0, Math.Min(significantDigits, s.Length));
+                string formatted = firstDigits.Length > 1
+                    ? $"{firstDigits[0]}.{firstDigits.Substring(1)}"
+                    : firstDigits;
 
-                    // Если длина больше 1, вставим запятую после первой цифры
-                    string formatted = firstDigits.Length > 1
-                        ? $"{firstDigits[0]}.{firstDigits.Substring(1)}"
-                        : firstDigits;
+                string result = $"{formatted} × 10^{exponent}";
+                if (value.Sign < 0)
+                    result = "−" + result;
 
-                    // Добавим экспоненту
-                    string result = $"{formatted} × 10^{exponent}";
-
-                    // Добавим минус, если число отрицательное
-                    if (value.Sign < 0)
-                        result = "−" + result;
-
-                    return result;
-                }
+                return result;
+            }
         }
 
-        public void FactorialMinusOne()
+        // ------------------- Методы вычислений -------------------
+        private void DoFactorial(int n, Action<string, double> callback)
         {
             _stopwatch.Reset();
             _stopwatch.Start();
 
             BigInteger varResult = BigInteger.One;
-            for (int i = 1; i <= varFact1; i++)
-                varResult *= i;
-
-            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(varResult);
-            double varTotalAsOfNow = 0;
-
-            for (int varX = 1; varX <= varFact2 - 1; varX++)
+            for (int i = 1; i <= n; i++)
             {
-                varResult *= varX;
-                if (varX % 1000 == 0) // чтобы не блокировать CPU полностью
-                {
+                varResult *= i;
+                if (i % 1000 == 0)
                     Thread.Yield();
-                }
 
                 lock (_lock)
                 {
-                    varTotalCalculations += 1;
-                    varTotalAsOfNow = varTotalCalculations;
+                    varTotalCalculations++;
                 }
             }
+
+            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(varResult);
+            double total = varTotalCalculations;
 
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
 
-            FactorialMinusOneComplete?.Invoke(formatted, varTotalAsOfNow);
+            callback?.Invoke(formatted, total);
         }
 
-        public void Factorial()
+        private void DoAddTwo()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
 
-            BigInteger varResult = BigInteger.One;
-            for (int i = 1; i <= varFact1; i++)
-                varResult *= i;
-
-            string formatted = BigIntFormatter.FormatBigIntegerAsScientific(varResult);
-            double varTotalAsOfNow = 0;
-
-            for (int varX = 1; varX <= varFact1; varX++)
-            {
-                varResult *= varX;
-                if (varX % 1000 == 0)
-                {
-                    Thread.Yield();
-                }
-
-                lock (_lock)
-                {
-                    varTotalCalculations += 1;
-                    varTotalAsOfNow = varTotalCalculations;
-                }
-            }
-
-            _stopwatch.Stop();
-            LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
-
-            FactorialComplete?.Invoke(formatted, varTotalAsOfNow);
-        }
-
-        public void AddTwo()
-        {
-            _stopwatch.Reset();
-            _stopwatch.Start();
-
-            double varTotalAsOfNow = 0;
-            int varResult = varAddTwo + 2;
+            int result = varAddTwo + 2;
             lock (_lock)
-            {
-                varTotalCalculations += 1;
-                varTotalAsOfNow = varTotalCalculations;
-            }
+                varTotalCalculations++;
 
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
 
-            AddTwoComplete?.Invoke(varResult, varTotalAsOfNow);
+            AddTwoComplete?.Invoke(result, varTotalCalculations);
         }
 
-        public void RunALoop()
+        private void DoLoop()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
 
-            double varTotalAsOfNow = 0;
-            for (int varX = 1; varX <= varLoopValue; varX++)
+            for (int x = 1; x <= varLoopValue; x++)
             {
-                for (int varY = 1; varY <= 500; varY++)
+                for (int y = 1; y <= 500; y++)
                 {
                     lock (_lock)
-                    {
-                        varTotalCalculations += 1;
-                        varTotalAsOfNow = varTotalCalculations;
-                    }
+                        varTotalCalculations++;
                 }
             }
 
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
 
-            LoopComplete?.Invoke(varTotalAsOfNow, varLoopValue);
+            LoopComplete?.Invoke(varTotalCalculations, varLoopValue);
         }
 
-        public void ChooseThreads(int threadNumber)
+        // ------------------- Task-реализация -------------------
+        public void ChooseTask(int taskNumber)
         {
-            switch (threadNumber)
+            switch (taskNumber)
             {
                 case 1:
-                    FactorialThread = new Thread(new ThreadStart(this.Factorial));
-                    FactorialThread.IsBackground = true;
-                    FactorialThread.Start();
+                    // Оборачиваем событие в лямбду — событие нельзя напрямую передать как Action
+                    Task.Run(() => DoFactorial(varFact1, (s, d) => FactorialComplete?.Invoke(s, d)));
                     break;
                 case 2:
-                    FactorialMinusOneThread = new Thread(new ThreadStart(this.FactorialMinusOne));
-                    FactorialMinusOneThread.IsBackground = true;
-                    FactorialMinusOneThread.Start();
+                    Task.Run(() => DoFactorial(varFact2 - 1, (s, d) => FactorialMinusOneComplete?.Invoke(s, d)));
                     break;
                 case 3:
-                    AddTwoThread = new Thread(new ThreadStart(this.AddTwo));
-                    AddTwoThread.IsBackground = true;
-                    AddTwoThread.Start();
+                    Task.Run(() => DoAddTwo());
                     break;
                 case 4:
-                    LoopThread = new Thread(new ThreadStart(this.RunALoop));
-                    LoopThread.IsBackground = true;
-                    LoopThread.Start();
+                    Task.Run(() => DoLoop());
                     break;
             }
         }
+
     }
 }
