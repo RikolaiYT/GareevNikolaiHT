@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{E2916421-91AE-4B69-9687-38A7317BB2C6}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>GareevNikolaiHT</RootNamespace>
+    <RootNamespace>MultithreadCalculator</RootNamespace>
     <AssemblyName>GareevNikolaiHT</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

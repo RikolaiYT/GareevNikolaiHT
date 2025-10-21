@@ -17,10 +17,7 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Left" >
-            <Button x:Name="btnFactorial1" Content="Факториал" Width="110" Margin="0,0,8,0" Click="btnFactorial1_Click"/>
-            <Button x:Name="btnFactorial2" Content="Факториал - 1" Width="110" Margin="0,0,8,0" Click="btnFactorial2_Click"/>
-            <Button x:Name="btnAddTwo" Content="Прибавить два" Width="110" Margin="0,0,8,0" Click="btnAddTwo_Click"/>
-            <Button x:Name="btnRunLoops" Content="Выполнить цикл" Width="110" Click="btnRunLoops_Click"/>
+            <Button x:Name="btnRunAll" Content="Выполнить все расчёты (многопоточно)" Width="260" Click="btnRunAll_Click"/>
         </StackPanel>
 
         <Grid Grid.Row="4" Margin="0,8,0,0">

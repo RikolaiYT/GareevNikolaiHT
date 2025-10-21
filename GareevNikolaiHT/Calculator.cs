@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using System.Threading;
 
 namespace MultithreadCalculator
 {
@@ -22,6 +23,7 @@ namespace MultithreadCalculator
 
         public long LastOperationMilliseconds { get; private set; } = 0;
 
+        private readonly object _lock = new object();
         private readonly StopwatchTimer _stopwatch = new StopwatchTimer();
 
         // -------- Форматирование BigInteger как 1.23×10^N --------
@@ -34,7 +36,6 @@ namespace MultithreadCalculator
 
                 string s = BigInteger.Abs(value).ToString();
                 int exponent = s.Length - 1;
-
                 string firstDigits = s.Substring(0, Math.Min(significantDigits, s.Length));
 
                 string formatted = firstDigits.Length > 1
@@ -49,8 +50,8 @@ namespace MultithreadCalculator
             }
         }
 
-        // ---------- ОДНОПОТОЧНЫЕ вычисления ----------
-        public void Factorial()
+        // ---------- Многопоточные методы ----------
+        private void Factorial()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
@@ -59,7 +60,10 @@ namespace MultithreadCalculator
             for (int i = 1; i <= varFact1; i++)
             {
                 result *= i;
-                varTotalCalculations++;
+                if (i % 1000 == 0) Thread.Yield();
+
+                lock (_lock)
+                    varTotalCalculations++;
             }
 
             _stopwatch.Stop();
@@ -69,7 +73,7 @@ namespace MultithreadCalculator
             FactorialComplete?.Invoke(formatted, varTotalCalculations);
         }
 
-        public void FactorialMinusOne()
+        private void FactorialMinusOne()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
@@ -78,7 +82,10 @@ namespace MultithreadCalculator
             for (int i = 1; i <= varFact2 - 1; i++)
             {
                 result *= i;
-                varTotalCalculations++;
+                if (i % 1000 == 0) Thread.Yield();
+
+                lock (_lock)
+                    varTotalCalculations++;
             }
 
             _stopwatch.Stop();
@@ -88,13 +95,14 @@ namespace MultithreadCalculator
             FactorialMinusOneComplete?.Invoke(formatted, varTotalCalculations);
         }
 
-        public void AddTwo()
+        private void AddTwo()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
 
             int result = varAddTwo + 2;
-            varTotalCalculations++;
+            lock (_lock)
+                varTotalCalculations++;
 
             _stopwatch.Stop();
             LastOperationMilliseconds = _stopwatch.ElapsedMilliseconds;
@@ -102,7 +110,7 @@ namespace MultithreadCalculator
             AddTwoComplete?.Invoke(result, varTotalCalculations);
         }
 
-        public void RunALoop()
+        private void RunALoop()
         {
             _stopwatch.Reset();
             _stopwatch.Start();
@@ -111,7 +119,8 @@ namespace MultithreadCalculator
             {
                 for (int y = 1; y <= 500; y++)
                 {
-                    varTotalCalculations++;
+                    lock (_lock)
+                        varTotalCalculations++;
                 }
             }
 
@@ -121,24 +130,25 @@ namespace MultithreadCalculator
             LoopComplete?.Invoke(varTotalCalculations, varLoopValue);
         }
 
-        // --- Вместо потоков: просто вызывает метод напрямую ---
-        public void ChooseThreads(int threadNumber)
+        // ---------- Один метод, запускающий все 4 потока ----------
+        public void RunAllThreads()
         {
-            switch (threadNumber)
-            {
-                case 1:
-                    Factorial();
-                    break;
-                case 2:
-                    FactorialMinusOne();
-                    break;
-                case 3:
-                    AddTwo();
-                    break;
-                case 4:
-                    RunALoop();
-                    break;
-            }
+            varTotalCalculations = 0;
+
+            Thread t1 = new Thread(Factorial);
+            Thread t2 = new Thread(FactorialMinusOne);
+            Thread t3 = new Thread(AddTwo);
+            Thread t4 = new Thread(RunALoop);
+
+            t1.IsBackground = true;
+            t2.IsBackground = true;
+            t3.IsBackground = true;
+            t4.IsBackground = true;
+
+            t1.Start();
+            t2.Start();
+            t3.Start();
+            t4.Start();
         }
     }
 }

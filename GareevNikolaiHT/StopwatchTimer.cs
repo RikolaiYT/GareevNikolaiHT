@@ -2,10 +2,7 @@
 
 namespace MultithreadCalculator
 {
-    /// <summary>
-    /// Простой класс-таймер, измеряющий прошедшее время между Start() и Stop().
-    /// Аналог System.Diagnostics.Stopwatch, но реализован самостоятельно по требованию.
-    /// </summary>
+
     public class StopwatchTimer
     {
         private DateTime? _start;
@@ -35,9 +32,7 @@ namespace MultithreadCalculator
             _running = false;
         }
 
-        /// <summary>
-        /// Возвращает TimeSpan между Start и Stop (если Stop ещё не вызван — между Start и сейчас).
-        /// </summary>
+ 
         public TimeSpan Elapsed
         {
             get
