@@ -1,7 +1,6 @@
 ﻿using GareevNikolaiHT;
 using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace MultithreadCalculator
@@ -14,17 +13,15 @@ namespace MultithreadCalculator
         {
             InitializeComponent();
 
-            // Создаем экземпляр калькулятора и подписываемся на события
             Calculator1 = new Calculator();
             Calculator1.FactorialComplete += Calculator1_FactorialComplete;
             Calculator1.FactorialMinusOneComplete += Calculator1_FactorialMinusOneComplete;
             Calculator1.AddTwoComplete += Calculator1_AddTwoComplete;
             Calculator1.LoopComplete += Calculator1_LoopComplete;
-  
+            Calculator1.AllThreadsCompleted += Calculator1_AllThreadsCompleted; // новое событие
 
             lblTotalCalculations.Content = "Всего вычислений — 0";
             lblLastElapsed.Content = "—";
-
         }
 
         private void btnRunAll_Click(object sender, RoutedEventArgs e)
@@ -40,13 +37,10 @@ namespace MultithreadCalculator
             Calculator1.varAddTwo = v;
             Calculator1.varLoopValue = v;
 
-   
+            btnRunAll.IsEnabled = false; // блокируем кнопку до завершения всех потоков
 
-            btnRunAll.IsEnabled = false;
-
-            Calculator1.RunAllThreads(); // запускаем все 4 потока
+            Calculator1.RunAllThreads();
         }
-
 
         private void Calculator1_FactorialComplete(string Value, double Calculations)
         {
@@ -54,7 +48,6 @@ namespace MultithreadCalculator
             {
                 lblFactorial1.Content = Value;
                 lblTotalCalculations.Content = $"Всего вычислений — {Calculations}";
-                lblLastElapsed.Content = $"{Calculator1.LastOperationMilliseconds} ms";
             }));
         }
 
@@ -64,7 +57,6 @@ namespace MultithreadCalculator
             {
                 lblFactorial2.Content = Value;
                 lblTotalCalculations.Content = $"Всего вычислений — {Calculations}";
-                lblLastElapsed.Content = $"{Calculator1.LastOperationMilliseconds} ms";
             }));
         }
 
@@ -74,8 +66,7 @@ namespace MultithreadCalculator
             {
                 lblAddTwo.Content = Value.ToString();
                 lblTotalCalculations.Content = $"Всего вычислений — {Calculations}";
-                lblLastElapsed.Content = $"{Calculator1.LastOperationMilliseconds} ms";
-            }), DispatcherPriority.Normal);
+            }));
         }
 
         private void Calculator1_LoopComplete(double Calculations, int Count)
@@ -84,11 +75,16 @@ namespace MultithreadCalculator
             {
                 lblRunLoops.Content = Count.ToString();
                 lblTotalCalculations.Content = $"Всего вычислений — {Calculations}";
-                lblLastElapsed.Content = $"{Calculator1.LastOperationMilliseconds} ms";
+            }));
+        }
 
-                // Все потоки завершены — можно разблокировать кнопку
-                btnRunAll.IsEnabled = true;
-            }), DispatcherPriority.Normal);
+        private void Calculator1_AllThreadsCompleted(long elapsedMilliseconds)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                lblLastElapsed.Content = $"{elapsedMilliseconds} ms"; // показываем суммарное время
+                btnRunAll.IsEnabled = true; // разблокируем кнопку после завершения всех потоков
+            }));
         }
     }
 }
