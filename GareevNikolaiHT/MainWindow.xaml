@@ -1,0 +1,53 @@
+﻿<Window x:Class="MultithreadCalculator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Калькулятор - Многопоточность" Height="360" Width="720">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="8"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" VerticalAlignment="Center" >
+            <TextBlock Text="Ввести значение:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <TextBox x:Name="txtValue" Width="120" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Left" >
+            <Button x:Name="btnFactorial1" Content="Факториал" Width="110" Margin="0,0,8,0" Click="btnFactorial1_Click"/>
+            <Button x:Name="btnFactorial2" Content="Факториал - 1" Width="110" Margin="0,0,8,0" Click="btnFactorial2_Click"/>
+            <Button x:Name="btnAddTwo" Content="Прибавить два" Width="110" Margin="0,0,8,0" Click="btnAddTwo_Click"/>
+            <Button x:Name="btnRunLoops" Content="Выполнить цикл" Width="110" Click="btnRunLoops_Click"/>
+        </StackPanel>
+
+        <Grid Grid.Row="4" Margin="0,8,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Top">
+                <TextBlock Text="Факториал (varFact1):" FontWeight="Bold"/>
+                <Label x:Name="lblFactorial1" Content="" BorderBrush="Gray" BorderThickness="1" Padding="4" MinHeight="28"/>
+                <TextBlock Text="Факториал - 1 (varFact2-1):" FontWeight="Bold" Margin="0,8,0,0"/>
+                <Label x:Name="lblFactorial2" Content="" BorderBrush="Gray" BorderThickness="1" Padding="4" MinHeight="28"/>
+                <TextBlock Text="Прибавить два (varAddTwo+2):" FontWeight="Bold" Margin="0,8,0,0"/>
+                <Label x:Name="lblAddTwo" Content="" BorderBrush="Gray" BorderThickness="1" Padding="4" MinHeight="28"/>
+                <TextBlock Text="Статус цикла:" FontWeight="Bold" Margin="0,8,0,0"/>
+                <Label x:Name="lblRunLoops" Content="" BorderBrush="Gray" BorderThickness="1" Padding="4" MinHeight="28"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" VerticalAlignment="Top">
+                <TextBlock Text="Общее количество вычислений:" FontWeight="Bold"/>
+                <Label x:Name="lblTotalCalculations" Content="" BorderBrush="Gray" BorderThickness="1" Padding="4" MinHeight="28"/>
+                <TextBlock Text="Последнее время выполнения (мс):" FontWeight="Bold" Margin="0,8,0,0"/>
+                <Label x:Name="lblLastElapsed" Content="" BorderBrush="Gray" BorderThickness="1" Padding="4" MinHeight="28"/>
+                <TextBlock FontStyle="Italic" Margin="0,12,0,0" Height="44"><Run Text="Примечание: большие факториалы могут стать"/><LineBreak/><Run Text="' Infinity'."/></TextBlock>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
